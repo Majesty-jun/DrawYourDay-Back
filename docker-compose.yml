@@ -10,7 +10,7 @@ services:
     ports:
       - '5432:5432'
     volumes:
-      - ./postgres:/var/lib/postgresql
+      - ./postgres:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 2s
@@ -27,6 +27,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
+    # volumes:
+    #   - .:/usr/src/app
+    #   - /usr/src/app/node_modules
