@@ -27,6 +27,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # volumes:
-    #   - .:/usr/src/app
+    env_file:
+      - .env
+    volumes:
+      - .:/usr/src/app
     #   - /usr/src/app/node_modules
