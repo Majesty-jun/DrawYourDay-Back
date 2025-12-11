@@ -5,8 +5,10 @@ import {
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CreateDiaryDto } from './dto/create-diary.dto';
@@ -18,9 +20,12 @@ import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 export class DiaryController {
   constructor(private readonly diaryService: DiaryService) {}
 
-  @Get()
-  getCalendar() {
-    return this.diaryService.findAll();
+  @Get('/date')
+  getCalendar(
+    @Query('year', ParseIntPipe) year: number,
+    @Query('month', ParseIntPipe) month: number,
+  ) {
+    return this.diaryService.findMonthlyDiaries(year, month);
   }
 
   @Get(':id')

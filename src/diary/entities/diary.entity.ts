@@ -1,7 +1,9 @@
+import { Image } from 'src/image/entities/image.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   VersionColumn,
@@ -19,7 +21,7 @@ export class Diary {
   weatherId: number;
 
   @Column()
-  diaryDate: string;
+  diaryDate: Date;
 
   @Column('text', { array: true })
   diaryFeelings: string[];
@@ -35,4 +37,7 @@ export class Diary {
 
   @VersionColumn()
   version: number;
+
+  @OneToMany(() => Image, (image) => image.diary, { cascade: true })
+  images: Image[];
 }
