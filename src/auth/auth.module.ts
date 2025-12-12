@@ -1,12 +1,17 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UserModule } from 'src/user/user.module';
+import { User } from 'src/user/entities/user.entity';
+
 import { LocalStrategy } from './strategy/local.strategy';
-import { JwtStrategy } from './strategy/jwt.strategty';
+import { JwtStrategy } from './strategy/jwt.strategy';
+
 // import { GoogleStrategy } from './strategy/google.strategy';
 // import { KakaoStrategy } from './strategy/kakao.strategy';
 // import { NaverStrategy } from './strategy/naver.strategy';
@@ -14,20 +19,18 @@ import { JwtStrategy } from './strategy/jwt.strategty';
 @Module({
   imports: [
     ConfigModule,
+    TypeOrmModule.forFeature([User]),
     UserModule,
-    PassportModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+        secret: configService.get<string>('JWT_SECRET') || 'secretKey',
         signOptions: {
-          expiresIn: configService.get<number>(
-            'JWT_EXPIRES_IN',
-            Number(process.env.JWT_EXPIRES_IN),
-          ),
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '3600s',
         },
       }),
-      inject: [ConfigService],
     }),
   ],
   controllers: [AuthController],
@@ -39,6 +42,6 @@ import { JwtStrategy } from './strategy/jwt.strategty';
     // KakaoStrategy,
     // NaverStrategy,
   ],
-  exports: [AuthService],
+  exports: [JwtStrategy, PassportModule, AuthService],
 })
 export class AuthModule {}
