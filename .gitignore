@@ -57,3 +57,9 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # DB
 /postgres
+
+# Google Cloud Console
+google-credentials.json
+
+# AWS pem
+*.pem
