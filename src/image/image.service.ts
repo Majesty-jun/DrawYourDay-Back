@@ -57,7 +57,7 @@ export class ImageService {
         config: {
           numberOfImages: 1,
           aspectRatio: '1:1',
-          safetyFilterLevel: SafetyFilterLevel.BLOCK_ONLY_HIGH,
+          safetyFilterLevel: SafetyFilterLevel.BLOCK_LOW_AND_ABOVE,
           personGeneration: PersonGeneration.ALLOW_ADULT,
         },
       });
