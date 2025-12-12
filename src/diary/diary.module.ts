@@ -6,9 +6,10 @@ import { Diary } from './entities/diary.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { Image } from 'src/image/entities/image.entity';
 import { ImageService } from '../image/image.service';
+import { Weather } from 'src/weather/entities/weather.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Diary, Image]), AuthModule],
+  imports: [TypeOrmModule.forFeature([Diary, Image, Weather]), AuthModule],
   providers: [Diary, DiaryService, ImageService],
   controllers: [DiaryController],
 })

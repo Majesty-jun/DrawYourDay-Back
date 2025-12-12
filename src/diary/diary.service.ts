@@ -6,6 +6,7 @@ import { CreateDiaryDto } from './dto/create-diary.dto';
 import { UpdateDiaryDto } from './dto/update-diary.dto';
 import { Image } from 'src/image/entities/image.entity';
 import { ImageService } from 'src/image/image.service';
+import { Weather } from 'src/weather/entities/weather.entity';
 
 @Injectable()
 export class DiaryService {
@@ -16,6 +17,9 @@ export class DiaryService {
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
 
+    @InjectRepository(Weather)
+    private readonly weatherRepository: Repository<Weather>,
+
     private imageService: ImageService,
   ) {}
 
@@ -24,7 +28,20 @@ export class DiaryService {
     const savedDiary = await this.diaryRepository.save(newDiary);
 
     try {
-      const prompt = createDiaryDto.diaryDesc;
+      const weatherData = await this.weatherRepository.findOne({
+        where: { weatherId: createDiaryDto.weatherId },
+      });
+
+      const weather = weatherData?.weatherName || 'Sunny';
+      const color = weatherData?.promptColor || 'Warm Orange';
+      const mood = weatherData?.promptEmotion || 'peaceful';
+
+      const keywords = createDiaryDto.diaryFeelings.join(', ');
+
+      const fixedStyle =
+        'Style: impressionist oil pastel drawing, pointillism, grainy texture, vibrant pastel colors, dreamy atmosphere, soft focus.';
+
+      const prompt = `A scene featuring ${keywords}. context: ${createDiaryDto.diaryDesc}. Weather is ${weather}, creating a ${mood} mood. Color palette involves ${color} hues. ${fixedStyle}`;
 
       if (prompt) {
         const imageUrl = await this.imageService.generateImage(prompt);
