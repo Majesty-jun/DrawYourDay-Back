@@ -38,39 +38,41 @@ export class ImageService {
   }
 
   async generateImage(promptText: string): Promise<string> {
-    // 1. 이미지 생성
-    const response = await this.ai.models.generateImages({
-      model: 'imagen-3.0-generate-001',
-      prompt: promptText,
-      config: { numberOfImages: 1, aspectRatio: '1:1' },
-    });
+    try {
+      const response = await this.ai.models.generateImages({
+        model: 'imagen-3.0-generate-001',
+        prompt: promptText,
+        config: { numberOfImages: 1, aspectRatio: '1:1' },
+      });
 
-    const generatedImage = response.generatedImages?.[0];
-    if (!generatedImage?.image?.imageBytes) {
-      throw new Error('이미지 데이터 없음');
+      const generatedImage = response.generatedImages?.[0];
+      if (!generatedImage?.image?.imageBytes) {
+        throw new Error('이미지 데이터가 비어 있습니다.');
+      }
+
+      const buffer = Buffer.from(generatedImage.image.imageBytes, 'base64');
+      const fileName = `${uuidv4()}.png`;
+
+      await this.s3Client.send(
+        new PutObjectCommand({
+          Bucket: this.bucketName,
+          Key: fileName,
+          Body: buffer,
+          ContentType: 'image/png',
+        }),
+      );
+
+      const s3Url = `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+
+      console.log(`[S3 Upload] Success: ${s3Url}`);
+      return s3Url;
+    } catch (error) {
+      console.error('[Image Generation Error]', error);
+      if (error instanceof Error) {
+        console.error('Error Message:', error.message);
+      }
+      throw new InternalServerErrorException('이미지 생성 및 업로드 실패');
     }
-
-    const buffer = Buffer.from(generatedImage.image.imageBytes, 'base64');
-    const fileName = `${uuidv4()}.png`;
-
-    await this.s3Client.send(
-      new PutObjectCommand({
-        Bucket: this.bucketName,
-        Key: fileName,
-        Body: buffer,
-        ContentType: 'image/png',
-        // ACL: 'public-read',  // 버킷 설정에 따라 필요할 수도 있음
-      }),
-    );
-
-    const s3Url = `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
-
-    console.log(`[S3 Upload] Success: ${s3Url}`);
-    return s3Url;
-  }
-  catch(error) {
-    console.error('[Image Generation Error]', error);
-    throw new InternalServerErrorException('이미지 생성 및 업로드 실패');
   }
 
   async regenerateImage(diaryId: number) {
