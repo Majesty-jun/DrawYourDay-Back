@@ -20,7 +20,8 @@ import { ConfigService } from '@nestjs/config';
 export class ImageService {
   private ai: GoogleGenAI;
   private s3Client: S3Client;
-  private bucketName = process.env.AWS_BUCKET_NAME;
+  private bucketName: string;
+  private region: string;
 
   constructor(
     @InjectRepository(Image)
@@ -34,6 +35,9 @@ export class ImageService {
     this.ai = new GoogleGenAI({
       apiKey: this.configService.get<string>('GEMINI_API_KEY'),
     });
+
+    this.bucketName = this.configService.get<string>('AWS_BUCKET_NAME') || '';
+    this.region = this.configService.get<string>('AWS_REGION') || '';
 
     this.s3Client = new S3Client({
       region: this.configService.get<string>('AWS_REGION') as string,
@@ -62,11 +66,6 @@ export class ImageService {
         },
       });
 
-      console.log(
-        '🔍 [Gemini Raw Response]:',
-        JSON.stringify(response, null, 2),
-      );
-
       const generatedImage = response.generatedImages?.[0];
 
       if (!generatedImage?.image?.imageBytes) {
@@ -85,7 +84,7 @@ export class ImageService {
         }),
       );
 
-      const s3Url = `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+      const s3Url = `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${fileName}`;
       console.log(`[ImageService] 생성 및 업로드 완료: ${s3Url}`);
 
       return s3Url;
