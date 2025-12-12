@@ -1,4 +1,3 @@
-import { DiaryService } from './diary.service';
 import {
   Body,
   Controller,
@@ -11,9 +10,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { DiaryService } from './diary.service';
+import { User } from 'src/user/entities/user.entity';
 import { CreateDiaryDto } from './dto/create-diary.dto';
 import { UpdateDiaryDto } from './dto/update-diary.dto';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
+import { GetUser } from 'src/auth/decorator/get-user.decorator';
 
 @Controller('diary')
 @UseGuards(JwtAuthGuard)
@@ -22,32 +24,37 @@ export class DiaryController {
 
   @Get('/date')
   getCalendar(
+    @GetUser() user: User,
     @Query('year', ParseIntPipe) year: number,
     @Query('month', ParseIntPipe) month: number,
   ) {
-    return this.diaryService.findMonthlyDiaries(year, month);
+    return this.diaryService.findMonthlyDiaries(user, year, month);
   }
 
   @Get(':id')
-  getDiary(@Param('id') diaryId: string) {
-    return this.diaryService.findOne(+diaryId);
+  getDiary(@GetUser() user: User, @Param('id', ParseIntPipe) diaryId: number) {
+    return this.diaryService.findOne(user, diaryId);
   }
 
   @Post()
-  createDiary(@Body() createDiaryDto: CreateDiaryDto) {
-    return this.diaryService.create(createDiaryDto);
+  createDiary(@GetUser() user: User, @Body() createDiaryDto: CreateDiaryDto) {
+    return this.diaryService.create(user, createDiaryDto);
   }
 
   @Delete(':id')
-  deleteDiary(@Param('id') diaryId: string) {
-    return this.diaryService.delete(+diaryId);
+  deleteDiary(
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) diaryId: number,
+  ) {
+    return this.diaryService.delete(user, diaryId);
   }
 
   @Patch(':id')
   updateDiary(
-    @Param('id') diaryId: string,
+    @GetUser() user: User,
+    @Param('id', ParseIntPipe) diaryId: number,
     @Body() updateDiaryDto: UpdateDiaryDto,
   ) {
-    return this.diaryService.update(+diaryId, updateDiaryDto);
+    return this.diaryService.update(user, diaryId, updateDiaryDto);
   }
 }

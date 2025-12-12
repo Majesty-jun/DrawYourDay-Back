@@ -1,12 +1,11 @@
-import { IsArray, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateDiaryDto {
-  @IsNumber()
-  userId: number;
-
+  @IsNotEmpty()
   @IsNumber()
   weatherId: number;
 
+  @IsNotEmpty()
   @IsString()
   diaryDate: string;
 
@@ -14,6 +13,7 @@ export class CreateDiaryDto {
   @IsString({ each: true })
   diaryFeelings: string[];
 
+  @IsNotEmpty()
   @IsString()
   diaryDesc: string;
 }

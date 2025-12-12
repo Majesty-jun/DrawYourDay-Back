@@ -15,7 +15,7 @@ export class Diary {
   diaryId: number;
 
   @Column()
-  userId: number;
+  userId: string;
 
   @Column()
   weatherId: number;

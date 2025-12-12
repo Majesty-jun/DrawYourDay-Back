@@ -1,12 +1,13 @@
-import { Injectable } from '@nestjs/common';
 import { Between, Repository } from 'typeorm';
 import { Diary } from './entities/diary.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from '../user/entities/user.entity';
+import { ImageService } from 'src/image/image.service';
 import { CreateDiaryDto } from './dto/create-diary.dto';
 import { UpdateDiaryDto } from './dto/update-diary.dto';
 import { Image } from 'src/image/entities/image.entity';
-import { ImageService } from 'src/image/image.service';
 import { Weather } from 'src/weather/entities/weather.entity';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class DiaryService {
@@ -23,8 +24,11 @@ export class DiaryService {
     private imageService: ImageService,
   ) {}
 
-  async create(createDiaryDto: CreateDiaryDto) {
-    const newDiary = this.diaryRepository.create(createDiaryDto);
+  async create(user: User, createDiaryDto: CreateDiaryDto) {
+    const newDiary = this.diaryRepository.create({
+      ...createDiaryDto,
+      userId: user.id,
+    });
     const savedDiary = await this.diaryRepository.save(newDiary);
 
     try {
@@ -57,20 +61,21 @@ export class DiaryService {
       console.error('AI 이미지 생성 실패:', error);
     }
 
-    return this.findOne(savedDiary.diaryId);
+    return this.findOne(user, savedDiary.diaryId);
   }
 
   findAll() {
     return this.diaryRepository.find();
   }
 
-  findMonthlyDiaries(year: number, month: number) {
+  findMonthlyDiaries(user: User, year: number, month: number) {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
 
     return this.diaryRepository.find({
       where: {
         diaryDate: Between(startDate, endDate),
+        userId: user.id,
       },
       relations: ['images'],
       select: {
@@ -86,20 +91,31 @@ export class DiaryService {
     });
   }
 
-  findOne(diaryId: number) {
-    return this.diaryRepository.findOne({
-      where: { diaryId },
+  async findOne(user: User, diaryId: number) {
+    const diary = await this.diaryRepository.findOne({
+      where: {
+        diaryId,
+        userId: user.id,
+      },
       relations: ['images'],
     });
+
+    if (!diary) {
+      throw new NotFoundException('일기를 찾을 수 없습니다.');
+    }
+
+    return diary;
   }
 
-  async update(diaryId: number, updateDiaryDto: UpdateDiaryDto) {
+  async update(user: User, diaryId: number, updateDiaryDto: UpdateDiaryDto) {
+    await this.findOne(user, diaryId);
     await this.diaryRepository.update(diaryId, updateDiaryDto);
-    return this.diaryRepository.findOneBy({ diaryId });
+    return this.findOne(user, diaryId);
   }
 
-  async delete(diaryId: number) {
-    await this.diaryRepository.delete({ diaryId });
+  async delete(user: User, diaryId: number) {
+    await this.findOne(user, diaryId);
+    await this.diaryRepository.delete(diaryId);
     return diaryId;
   }
 }
