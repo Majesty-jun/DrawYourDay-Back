@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { ImageService } from './image.service';
-import { ImageController } from './image.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Diary } from 'src/diary/entities/diary.entity';
 import { Image } from './entities/image.entity';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ImageController } from './image.controller';
+import { Diary } from 'src/diary/entities/diary.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Image, Diary])],
+  imports: [ConfigModule, TypeOrmModule.forFeature([Image, Diary])],
   controllers: [ImageController],
   providers: [ImageService],
 })

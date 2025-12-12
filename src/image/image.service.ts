@@ -10,6 +10,7 @@ import { Image } from './entities/image.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Diary } from 'src/diary/entities/diary.entity';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ImageService {
@@ -23,14 +24,22 @@ export class ImageService {
 
     @InjectRepository(Diary)
     private readonly diaryRepository: Repository<Diary>,
+
+    private readonly configService: ConfigService,
   ) {
-    this.ai = new GoogleGenAI({});
+    this.ai = new GoogleGenAI({
+      apiKey: this.configService.get<string>('GEMINI_API_KEY'),
+    });
 
     this.s3Client = new S3Client({
-      region: process.env.AWS_REGION as string,
+      region: this.configService.get<string>('AWS_REGION') as string,
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
+        accessKeyId: this.configService.get<string>(
+          'AWS_ACCESS_KEY_ID',
+        ) as string,
+        secretAccessKey: this.configService.get<string>(
+          'AWS_SECRET_ACCESS_KEY',
+        ) as string,
       },
     });
   }
@@ -38,14 +47,18 @@ export class ImageService {
   async generateImage(promptText: string): Promise<string> {
     try {
       const response = await this.ai.models.generateImages({
-        model: 'imagen-4.0-generate-001',
+        model: 'imagen-4.0-fast-generate-001',
         prompt: promptText,
+        config: {
+          numberOfImages: 1,
+          aspectRatio: '1:1',
+        },
       });
 
       const generatedImage = response.generatedImages?.[0];
 
       if (!generatedImage?.image?.imageBytes) {
-        throw new Error('이미지 데이터가 없습니다.');
+        throw new Error('Imagen AI 응답에 이미지 데이터가 없습니다.');
       }
 
       const buffer = Buffer.from(generatedImage.image.imageBytes, 'base64');
@@ -61,12 +74,14 @@ export class ImageService {
       );
 
       const s3Url = `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
-      console.log(`[S3 Upload] Success: ${s3Url}`);
+      console.log(`[ImageService] 생성 및 업로드 완료: ${s3Url}`);
 
       return s3Url;
     } catch (error) {
       console.error('[Image Generation Error]', error);
-      throw new InternalServerErrorException('이미지 생성 실패');
+      throw new InternalServerErrorException(
+        '이미지 생성 중 오류가 발생했습니다.',
+      );
     }
   }
 
