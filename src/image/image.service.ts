@@ -33,14 +33,15 @@ export class ImageService {
 
     this.s3Client = new S3Client({
       region: this.configService.get<string>('AWS_REGION') as string,
-      credentials: {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      credentials: async () => ({
         accessKeyId: this.configService.get<string>(
           'AWS_ACCESS_KEY_ID',
         ) as string,
         secretAccessKey: this.configService.get<string>(
           'AWS_SECRET_ACCESS_KEY',
         ) as string,
-      },
+      }),
     });
   }
 
