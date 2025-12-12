@@ -29,10 +29,10 @@ services:
         condition: service_healthy
     env_file:
       - .env
-    environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/usr/src/app/secrets/google-credentials.json
-    volumes:
-      - ./google-credentials.json:/usr/src/app/secrets/google-credentials.json
+    # environment:
+    #   - GOOGLE_APPLICATION_CREDENTIALS=/usr/src/app/secrets/google-credentials.json
+    # volumes:
+    #   - ./google-credentials.json:/usr/src/app/secrets/google-credentials.json
     # volumes:
     #   - .:/usr/src/app
     #   - /usr/src/app/node_modules
