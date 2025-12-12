@@ -24,9 +24,7 @@ export class ImageService {
     @InjectRepository(Diary)
     private readonly diaryRepository: Repository<Diary>,
   ) {
-    this.ai = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-    });
+    this.ai = new GoogleGenAI({});
 
     this.s3Client = new S3Client({
       region: process.env.AWS_REGION as string,
@@ -40,14 +38,14 @@ export class ImageService {
   async generateImage(promptText: string): Promise<string> {
     try {
       const response = await this.ai.models.generateImages({
-        model: 'imagen-3.0-generate-001',
+        model: 'imagen-4.0-generate-001',
         prompt: promptText,
-        config: { numberOfImages: 1, aspectRatio: '1:1' },
       });
 
       const generatedImage = response.generatedImages?.[0];
+
       if (!generatedImage?.image?.imageBytes) {
-        throw new Error('이미지 데이터가 비어 있습니다.');
+        throw new Error('이미지 데이터가 없습니다.');
       }
 
       const buffer = Buffer.from(generatedImage.image.imageBytes, 'base64');
@@ -63,25 +61,23 @@ export class ImageService {
       );
 
       const s3Url = `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
-
       console.log(`[S3 Upload] Success: ${s3Url}`);
+
       return s3Url;
     } catch (error) {
       console.error('[Image Generation Error]', error);
-      if (error instanceof Error) {
-        console.error('Error Message:', error.message);
-      }
-      throw new InternalServerErrorException('이미지 생성 및 업로드 실패');
+      throw new InternalServerErrorException('이미지 생성 실패');
     }
   }
 
-  async regenerateImage(diaryId: number) {
+  async regenerateImage(diaryId: number): Promise<Image> {
     const diary = await this.diaryRepository.findOne({ where: { diaryId } });
     if (!diary) {
-      throw new NotFoundException('일기를 찾을 수 없습니다.');
+      throw new NotFoundException(`ID가 ${diaryId}인 일기를 찾을 수 없습니다.`);
     }
 
     const imageUrl = await this.generateImage(diary.diaryDesc);
+
     const newImage = this.imageRepository.create({
       diary: diary,
       imageUrl: imageUrl,
@@ -91,7 +87,13 @@ export class ImageService {
     return await this.imageRepository.save(newImage);
   }
 
-  async findOne(imageId: number) {
-    return await this.imageRepository.findOne({ where: { imageId } });
+  async findOne(imageId: number): Promise<Image> {
+    const image = await this.imageRepository.findOne({ where: { imageId } });
+    if (!image) {
+      throw new NotFoundException(
+        `ID가 ${imageId}인 이미지를 찾을 수 없습니다.`,
+      );
+    }
+    return image;
   }
 }
