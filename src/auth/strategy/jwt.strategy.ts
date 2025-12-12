@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm/browser';
+import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { JwtPayload } from 'src/common/interface';
 import { InjectRepository } from '@nestjs/typeorm';

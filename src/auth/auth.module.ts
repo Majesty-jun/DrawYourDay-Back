@@ -11,6 +11,7 @@ import { User } from 'src/user/entities/user.entity';
 
 import { LocalStrategy } from './strategy/local.strategy';
 import { JwtStrategy } from './strategy/jwt.strategy';
+import { SignOptions } from 'jsonwebtoken';
 
 // import { GoogleStrategy } from './strategy/google.strategy';
 // import { KakaoStrategy } from './strategy/kakao.strategy';
@@ -28,7 +29,8 @@ import { JwtStrategy } from './strategy/jwt.strategy';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET') || 'secretKey',
         signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '3600s',
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') ||
+            '3600s') as SignOptions['expiresIn'],
         },
       }),
     }),
