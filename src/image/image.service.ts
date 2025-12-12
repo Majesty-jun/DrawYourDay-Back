@@ -5,7 +5,11 @@ import {
 } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { Repository } from 'typeorm';
-import { GoogleGenAI } from '@google/genai';
+import {
+  GoogleGenAI,
+  PersonGeneration,
+  SafetyFilterLevel,
+} from '@google/genai';
 import { Image } from './entities/image.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Diary } from 'src/diary/entities/diary.entity';
@@ -53,8 +57,15 @@ export class ImageService {
         config: {
           numberOfImages: 1,
           aspectRatio: '1:1',
+          safetyFilterLevel: SafetyFilterLevel.BLOCK_ONLY_HIGH,
+          personGeneration: PersonGeneration.ALLOW_ADULT,
         },
       });
+
+      console.log(
+        '🔍 [Gemini Raw Response]:',
+        JSON.stringify(response, null, 2),
+      );
 
       const generatedImage = response.generatedImages?.[0];
 
