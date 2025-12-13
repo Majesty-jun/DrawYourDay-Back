@@ -42,28 +42,27 @@ export class DiaryService {
       const keywords = createDiaryDto.diaryFeelings.join(', ');
 
       const finalPrompt = `
-        [Role Definition]
-        You are an AI artist creating an abstract impressionist impasto oil painting based on a user's diary entry.
+        [Art Style Direction]
+        A dreamy abstract impressionist impasto oil painting with thick, textured brushstrokes and soft focus.
 
-        [BLOCK 1: Scene Context Analysis Rules] (⭐ 여기가 핵심!)
-        Before drawing, analyze the "Diary Text" below to determine the setting:
-        1.  **Indoor Priority:** If the text explicitly mentions interior elements (e.g., bed, ceiling, room, window from inside, furniture), you MUST depict an INDOOR scene. Do not draw wide landscapes or skies in this case.
-        2.  **Outdoor Priority:** If the text explicitly mentions outdoor activities or locations (e.g., picnic, park, street, river, running), you MUST depict an OUTDOOR scene.
-        3.  **Ambiguous Case:** If the text focuses only on emotions without spatial cues, choose a setting (abstract landscape or interior) that best fits the mood defined below.
+        [Subject Matter - Visual Translation]
+        Visually interpret the scene and setting described in the "Diary Source" below.
+        Translate the objects, location, and actions mentioned in the text directly into painted scenery.
+        (e.g., If it mentions a 'bed' or 'room', paint an interior scene. If it mentions 'park' or 'wind', paint an outdoor scene.)
 
-        [BLOCK 2: Diary Source Input]
-        **Diary Text:** "${createDiaryDto.diaryDesc}"
-        **Keywords/Emotions:** "${keywords}"
+        **Diary Source:** "${createDiaryDto.diaryDesc}"
+        **Theme Keywords:** "${keywords}"
 
-        [BLOCK 3: Art Style & Technique Constraints]
-        - Style: Abstract impressionist impasto oil painting. Dreamy and artistic.
-        - Technique: Thick brushstrokes, palette knife texture, soft focus, ethereal lighting.
-        - Figures: If human presence is inferred from the text, render them as abstract silhouettes or rough brushstrokes blended into the scenery. DO NOT draw realistic faces or detailed bodies.
+        [Atmosphere & Color]
+        The overall mood is ${mood}.
+        The color palette is dominated by ${color}, blended with colors evoking the feeling of "${keywords}".
 
-        [BLOCK 4: Mood & Color Palette]
-        - Atmosphere Goal: ${mood}.
-        - Color Dominance: ${color}, mixed with colors representing the keywords.
-        - Final Touches: Focus on emotional depth and texture over realism.
+        [Handling Figures]
+        If human presence is implied by the diary text, render them only as abstract silhouettes or vague brushstrokes blended into the environment. No realistic details or faces.
+
+        [CRITICAL Negative Constraints]
+        **DO NOT include any text, letters, words, speech bubbles, or UI elements in the final image.**
+        Do not draw realistic people.
       `;
       if (finalPrompt) {
         const imageUrl = await this.imageService.generateImage(finalPrompt);
