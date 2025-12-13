@@ -1,4 +1,4 @@
-import { IsBoolean, IsString } from 'class-validator';
+import { IsBoolean, IsOptional, IsString } from 'class-validator';
 
 export class CreateWeatherDto {
   @IsString()
@@ -15,4 +15,8 @@ export class CreateWeatherDto {
 
   @IsString()
   promptColor: string;
+
+  @IsString()
+  @IsOptional()
+  promptAtmosphere: string;
 }

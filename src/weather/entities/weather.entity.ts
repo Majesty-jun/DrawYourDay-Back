@@ -27,6 +27,9 @@ export class Weather {
   @Column()
   promptColor: string;
 
+  @Column({ type: 'text', nullable: true })
+  promptAtmosphere: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
