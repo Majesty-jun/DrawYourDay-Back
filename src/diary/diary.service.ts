@@ -36,23 +36,35 @@ export class DiaryService {
         where: { weatherId: createDiaryDto.weatherId },
       });
 
-      const weather = weatherData?.weatherName || 'Sunny';
       const color = weatherData?.promptColor || 'Warm Orange';
-      const mood = weatherData?.promptEmotion || 'peaceful';
+      const mood = weatherData?.promptAtmosphere || 'peaceful';
 
       const keywords = createDiaryDto.diaryFeelings.join(', ');
 
-      const fixedStyle =
-        'Style: impressionist oil pastel drawing, pointillism, grainy texture, vibrant pastel colors, dreamy atmosphere, soft focus.';
+      const finalPrompt = `
+        [Art Style]
+        Abstract impressionist impasto oil painting. 
+        A vast, surreal, and dreamy landscape. NO human figures.
+        
+        [Mood & Atmosphere]
+        The scene creates an atmosphere that is ${mood}.
+        The landscape reflects the emotions of: "${keywords}".
+        The color palette is dominated by ${color}, mixed with colors representing ${keywords}.
 
-      const prompt = `A scene featuring ${keywords}. context: ${createDiaryDto.diaryDesc}. Weather is ${weather}, creating a ${mood} mood. Color palette involves ${color} hues. ${fixedStyle}`;
-
-      if (prompt) {
-        const imageUrl = await this.imageService.generateImage(prompt);
+        [Subject interpretation]
+        Interpret the following diary text as an abstract metaphor and express it through nature and scenery:
+        "${createDiaryDto.diaryDesc}"
+        
+        [Details]
+        Focus on the feeling of "${keywords}" rather than specific objects.
+        Thick impasto brushstrokes, ethereal lighting, soft focus, artistic, emotional depth.
+      `;
+      if (finalPrompt) {
+        const imageUrl = await this.imageService.generateImage(finalPrompt);
         const newImage = this.imageRepository.create({
           diary: savedDiary,
           imageUrl: imageUrl,
-          promptText: prompt,
+          promptText: finalPrompt,
         });
 
         await this.imageRepository.save(newImage);
@@ -64,8 +76,8 @@ export class DiaryService {
     return this.findOne(user, savedDiary.diaryId);
   }
 
-  findAll() {
-    return this.diaryRepository.find();
+  findAll(user: User) {
+    return this.diaryRepository.find({ where: { userId: user.id } });
   }
 
   findMonthlyDiaries(user: User, year: number, month: number) {
