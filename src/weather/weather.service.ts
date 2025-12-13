@@ -17,7 +17,11 @@ export class WeatherService {
   }
 
   findAll() {
-    return this.weatherRepository.find();
+    return this.weatherRepository.find({
+      order: {
+        weatherId: 'ASC',
+      },
+    });
   }
 
   findOne(weatherId: number) {
