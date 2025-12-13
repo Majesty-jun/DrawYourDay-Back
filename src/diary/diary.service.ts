@@ -42,27 +42,28 @@ export class DiaryService {
       const keywords = createDiaryDto.diaryFeelings.join(', ');
 
       const finalPrompt = `
-        [Art Style]
-        Abstract impressionist impasto oil painting. 
-        A dreamy and artistic scene created with thick brushstrokes.
-        
-        [Handling Figures]
-        If the text implies human presence (e.g., picnic, meeting, crowd), depiction should be artistic and subtle.
-        Render figures as abstract silhouettes or rough brushstrokes blended into the scenery.
-        DO NOT draw realistic facial features or detailed bodies. Keep them anonymous and part of the painting.
-        
-        [Mood & Atmosphere]
-        The scene creates an atmosphere that is ${mood}.
-        The image reflects the emotions of: "${keywords}".
-        The color palette is dominated by ${color}, mixed with colors representing ${keywords}.
+        [Role Definition]
+        You are an AI artist creating an abstract impressionist impasto oil painting based on a user's diary entry.
 
-        [Subject interpretation]
-        Interpret the following diary text as an artistic scene:
-        "${createDiaryDto.diaryDesc}"
-        
-        [Details]
-        Focus on the mood and texture rather than realistic details.
-        Thick impasto brushstrokes, ethereal lighting, soft focus, emotional depth.
+        [BLOCK 1: Scene Context Analysis Rules] (⭐ 여기가 핵심!)
+        Before drawing, analyze the "Diary Text" below to determine the setting:
+        1.  **Indoor Priority:** If the text explicitly mentions interior elements (e.g., bed, ceiling, room, window from inside, furniture), you MUST depict an INDOOR scene. Do not draw wide landscapes or skies in this case.
+        2.  **Outdoor Priority:** If the text explicitly mentions outdoor activities or locations (e.g., picnic, park, street, river, running), you MUST depict an OUTDOOR scene.
+        3.  **Ambiguous Case:** If the text focuses only on emotions without spatial cues, choose a setting (abstract landscape or interior) that best fits the mood defined below.
+
+        [BLOCK 2: Diary Source Input]
+        **Diary Text:** "${createDiaryDto.diaryDesc}"
+        **Keywords/Emotions:** "${keywords}"
+
+        [BLOCK 3: Art Style & Technique Constraints]
+        - Style: Abstract impressionist impasto oil painting. Dreamy and artistic.
+        - Technique: Thick brushstrokes, palette knife texture, soft focus, ethereal lighting.
+        - Figures: If human presence is inferred from the text, render them as abstract silhouettes or rough brushstrokes blended into the scenery. DO NOT draw realistic faces or detailed bodies.
+
+        [BLOCK 4: Mood & Color Palette]
+        - Atmosphere Goal: ${mood}.
+        - Color Dominance: ${color}, mixed with colors representing the keywords.
+        - Final Touches: Focus on emotional depth and texture over realism.
       `;
       if (finalPrompt) {
         const imageUrl = await this.imageService.generateImage(finalPrompt);
