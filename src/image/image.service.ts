@@ -32,6 +32,24 @@ export class ImageService {
 
     private readonly configService: ConfigService,
   ) {
+    // 👇 1. 변수 가져오기
+    const accessKey = this.configService.get<string>('AWS_ACCESS_KEY_ID');
+    const secretKey = this.configService.get<string>('AWS_SECRET_ACCESS_KEY');
+    const bucket = this.configService.get<string>('AWS_BUCKET_NAME');
+
+    // 👇 2. 로그 찍기 (보안을 위해 일부만 출력)
+    console.log('================ AWS ENV CHECK ================');
+    console.log(
+      'AWS_ACCESS_KEY_ID:',
+      accessKey ? `${accessKey.slice(0, 5)}...` : '❌ MISSING (NULL/UNDEFINED)',
+    );
+    console.log(
+      'AWS_SECRET_ACCESS_KEY:',
+      secretKey ? '✅ EXISTS' : '❌ MISSING',
+    );
+    console.log('AWS_BUCKET_NAME:', bucket || '❌ MISSING');
+    console.log('===============================================');
+
     this.ai = new GoogleGenAI({
       apiKey: this.configService.get<string>('GEMINI_API_KEY'),
     });
