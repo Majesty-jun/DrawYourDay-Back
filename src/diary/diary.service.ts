@@ -44,20 +44,25 @@ export class DiaryService {
       const finalPrompt = `
         [Art Style]
         Abstract impressionist impasto oil painting. 
-        A vast, surreal, and dreamy landscape. NO human figures.
+        A dreamy and artistic scene created with thick brushstrokes.
+        
+        [Handling Figures]
+        If the text implies human presence (e.g., picnic, meeting, crowd), depiction should be artistic and subtle.
+        Render figures as abstract silhouettes or rough brushstrokes blended into the scenery.
+        DO NOT draw realistic facial features or detailed bodies. Keep them anonymous and part of the painting.
         
         [Mood & Atmosphere]
         The scene creates an atmosphere that is ${mood}.
-        The landscape reflects the emotions of: "${keywords}".
+        The image reflects the emotions of: "${keywords}".
         The color palette is dominated by ${color}, mixed with colors representing ${keywords}.
 
         [Subject interpretation]
-        Interpret the following diary text as an abstract metaphor and express it through nature and scenery:
+        Interpret the following diary text as an artistic scene:
         "${createDiaryDto.diaryDesc}"
         
         [Details]
-        Focus on the feeling of "${keywords}" rather than specific objects.
-        Thick impasto brushstrokes, ethereal lighting, soft focus, artistic, emotional depth.
+        Focus on the mood and texture rather than realistic details.
+        Thick impasto brushstrokes, ethereal lighting, soft focus, emotional depth.
       `;
       if (finalPrompt) {
         const imageUrl = await this.imageService.generateImage(finalPrompt);
